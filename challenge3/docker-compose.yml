@@ -1,0 +1,31 @@
+services:
+  db:
+    build:
+      context: ./docker/db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+  node-service:
+    build:
+      context: ./docker/api
+    depends_on:
+      - db
+    environment:
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+    ports:
+      - "3000:3000"
+  nginx:
+    build:
+      context: ./docker/nginx
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - node-service
