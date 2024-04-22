@@ -1,36 +1,31 @@
+version: "3.8"
+
 services:
-
-  db:
-    build:
-      context: ./docker/db
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-  node-service:
-    build:
-      context: ./docker/api
-    depends_on:
-      - db
-    environment:
-      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${DB_HOST}
-
-    ports:
-      - "3000-3002:3000"
-    deploy:
-      replicas: 3
-
   nginx:
-    build:
-      context: ./docker/nginx
-    restart: always
+    build: ./docker/nginx
     ports:
       - "8080:80"
+      - "8081:81
     depends_on:
       - node-service
+
+  node-service:
+    build: ./docker/api
+    environment:
+      - DB_HOST=db
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+    depends_on:
+      - db
+
+  db:
+    build: ./docker/db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
